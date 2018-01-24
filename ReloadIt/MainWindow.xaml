@@ -1,0 +1,311 @@
+﻿<Window x:Class="ReloadIt.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:ReloadIt.Converter"
+        Title="ReloadIt"
+        Height="350" Width="525"
+        Loaded="Window_Loaded"
+        KeyDown="Window_KeyDown"
+        Icon="/ReloadIt;component/Button-Reload.ico"
+        Closing="Window_Closing"
+        Initialized="Window_Initialized">
+  <Window.Resources>
+    <ResourceDictionary>
+      <Style x:Key="hiddenHeaderStyle" TargetType="{x:Type GridViewColumnHeader}">
+        <Setter Property="Visibility" Value="Collapsed" />
+      </Style>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Resources/TBStyle3.xaml" />
+        <ResourceDictionary Source="Resources/HighlightedLvi.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+
+  <Grid Name="mainGrid">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/> <!-- only one column? -->
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" /> <!-- search box          -->
+      <RowDefinition Height="*" />    <!-- main UI grid        -->
+      <RowDefinition Height="Auto" /> <!-- statusbar at bottom -->
+    </Grid.RowDefinitions>
+
+    <DockPanel Name="dockPanel0"
+               Grid.Column="0"
+               Grid.Row="0"
+               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+               >
+      <TextBox Name="textBox0"
+               DockPanel.Dock="Top"
+               Margin="2,4,0,0"
+               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+               ToolTip="search/filter" TextChanged="textBox0_TextChanged" />
+    </DockPanel>
+
+    <Grid Name="innerGrid"
+          Grid.Column="0"
+          Grid.Row="1"
+          >
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition MinWidth="120" />          <!-- LHS -->
+        <ColumnDefinition Width="Auto"/>             <!-- splitter -->
+        <ColumnDefinition MinWidth="120" Width="*"/> <!-- RHS -->
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*" />  <!-- main UI elements -->
+        <RowDefinition Height="Auto" />  <!-- message list     -->
+      </Grid.RowDefinitions>
+
+      <GridSplitter Name                ="gridSplitter1"
+                    Width               ="5"
+                    Grid.Column         ="1"
+                    Grid.Row            ="0"
+                    Margin              ="0,5,0,5"
+                    HorizontalAlignment ="Center"
+                    VerticalAlignment   ="Stretch"
+                    ResizeBehavior      ="PreviousAndNext"
+                    ResizeDirection     ="Columns"
+                    Panel.ZIndex        ="1"/>
+
+      <ListView Name                ="listView1"
+                Focusable           ="False"
+                HorizontalAlignment ="Stretch"
+                VerticalAlignment   ="Stretch"
+                Grid.Column         ="0"
+                Grid.Row            ="0"
+                SelectionChanged    ="listView1_SelectionChanged"
+                ItemContainerStyle  ="{StaticResource HighlightIfMonitoring}"
+                ToolTip             ="Urls shown in IE browser tabs"
+                SelectionMode       ="Single">
+
+        <ListView.ContextMenu>
+          <ContextMenu>
+            <MenuItem Click="bringToFront_click"
+                      Header="_Bring to Front">
+              <MenuItem.Icon>
+                <Image Source="images/goto-16x16.png" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Click="refreshtab_click"
+                      Header="_Refresh this tab now">
+              <MenuItem.Icon>
+                <Image Source="images/refresh-16x16.png" />
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Click="closetab_click"
+                      Header="_Close this tab">
+              <MenuItem.Icon>
+                <Image Source="images/close-16x16.png" />
+              </MenuItem.Icon>
+            </MenuItem>
+          </ContextMenu>
+        </ListView.ContextMenu>
+        <ListView.View>
+          <GridView ColumnHeaderContainerStyle="{StaticResource hiddenHeaderStyle}">
+            <GridViewColumn Header="Url" DisplayMemberBinding="{Binding Path=LocationUrl}"/>
+          </GridView>
+        </ListView.View>
+      </ListView>
+
+      <DockPanel Name="dockPanel1"
+                 Grid.Column="2"
+                 Grid.Row="0"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                 >
+        <CheckBox Name="checkBox1"
+                  Content="Refresh Enabled"
+                  Height="16"
+                  DockPanel.Dock="Top"
+                  Grid.Column="0"
+                  Grid.Row="0"
+                  Margin="2,2,0,0"
+                  HorizontalAlignment="Left" VerticalAlignment="Top"
+                  Checked="checkBox1_CheckedChanged"
+                  Unchecked="checkBox1_CheckedChanged">
+          <CheckBox.ToolTip>
+            <TextBlock>
+              Check this to enable monitoring the
+              <LineBreak/>
+              specified directories for the selected URL.
+            </TextBlock>
+          </CheckBox.ToolTip>
+        </CheckBox>
+        <TextBox Name="textBox1"
+                 DockPanel.Dock="Bottom"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Visible"
+                 AcceptsReturn="True"
+                 Margin="2,4,0,0"
+                 HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch"
+                 >
+          <TextBox.ToolTip>
+            <TextBlock>
+              files or directories to monitor for changes
+              <LineBreak/>
+              (one per line). These apply only to the
+              <LineBreak/>
+              URL selected on the left.
+            </TextBlock>
+          </TextBox.ToolTip>
+        </TextBox>
+      </DockPanel>
+
+      <DockPanel Name="dockPanel2"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                 Height="90"
+                 Grid.Row="2"
+                 Grid.Column="0"
+                 Grid.ColumnSpan="3"
+                 >
+        <StatusBar Name="sbMsgCount"
+                   DockPanel.Dock="Top"
+                   Height="22"
+                   HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+          <StatusBar.ItemsPanel>
+            <ItemsPanelTemplate>
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+              </Grid>
+            </ItemsPanelTemplate>
+          </StatusBar.ItemsPanel>
+          <StatusBarItem Grid.Column="0">
+            <TextBlock>
+
+              <!-- Background="{Binding Path=AlertButtonBackColor}" -->
+
+              <ToggleButton Name       ="btnShowAlerts"
+                            IsChecked  ="{Binding Path=ShowAlerts, Mode=TwoWay}"
+                            Style      ="{StaticResource ToggleButtonStyle3}"
+                            Content    ="alerts"
+                            FontSize   ="9"
+                            Padding    ="8,2"
+                            Margin     ="0"
+                            ClickMode  ="Press"
+                            />
+            </TextBlock>
+
+          </StatusBarItem>
+          <Separator Grid.Column="1"/>
+          <StatusBarItem Grid.Column="2">
+            <TextBlock>
+              <ToggleButton Name      ="btnShowInfos"
+                            IsChecked ="{Binding Path=ShowInfos, Mode=TwoWay}"
+                            Style     ="{StaticResource ToggleButtonStyle3}"
+                            Content   ="infos"
+                            FontSize  ="9"
+                            Padding   ="8,2" Margin="0"
+                            ClickMode ="Press"
+                            />
+            </TextBlock>
+          </StatusBarItem>
+        </StatusBar>
+
+        <!-- ItemContainerStyle="{StaticResource alternatingItemStyle}" AlternationCount="2" -->
+
+        <ListView Name="lvMessages"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                  DockPanel.Dock="Bottom"
+                  Padding="4,2"
+                  Margin="0"
+                  ToolTip="messages and alerts"
+                  SelectionMode="Single"
+                  FontSize="10"
+                  IsEnabled="True"
+                  AlternationCount="2"
+                  >
+
+          <ListView.ItemContainerStyle>
+            <Style TargetType="ListViewItem">
+              <Setter Property="Height" Value="16" />
+            </Style>
+          </ListView.ItemContainerStyle>
+
+          <ListView.View>
+            <GridView ColumnHeaderContainerStyle="{StaticResource hiddenHeaderStyle}">
+              <GridViewColumn Header="Type"
+                              DisplayMemberBinding="{Binding Path=Flavor, Converter={x:Static conv:FlavorToChar.Instance}}"/>
+              <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Path=Time}"/>
+              <GridViewColumn Header="Message" DisplayMemberBinding="{Binding Path=Message}"/>
+            </GridView>
+          </ListView.View>
+        </ListView>
+
+      </DockPanel>
+    </Grid> <!-- innerGrid -->
+
+
+    <StatusBar Name="statusBar1"
+               Grid.Row="3"
+               Grid.Column="0"
+               Height="26"
+               HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+
+      <StatusBar.ItemsPanel>
+        <ItemsPanelTemplate>
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+          </Grid>
+        </ItemsPanelTemplate>
+      </StatusBar.ItemsPanel>
+      <StatusBarItem Grid.Column="0">
+        <TextBlock Name="status1">Ready</TextBlock>
+      </StatusBarItem>
+      <Separator Grid.Column="1"/>
+      <StatusBarItem Grid.Column="2">
+        <TextBlock>
+          <!-- Visibility="{Binding Path=UnacknowledgedAlertCount, Converter={x:Static conv:VisibleWhenZero.Instance}}" -->
+
+          <ToggleButton Name="btnMessages"
+                        Content="{Binding Path=MessageButtonContent}"
+                        Foreground="{Binding Path=MessageButtonForeColor}"
+                        Background="{Binding Path=MessageButtonBackColor}"
+                        FontSize="9"
+                        Padding="8,0" Margin="0"
+                        Click="btnMessages_click" ClickMode="Press"
+                        />
+        </TextBlock>
+      </StatusBarItem>
+      <Separator Grid.Column="3"/>
+      <StatusBarItem Grid.Column="4">
+        <TextBlock Name="status2" Text="{Binding Path=ReloadCountText}" />
+      </StatusBarItem>
+      <Separator Grid.Column="5"/>
+      <StatusBarItem Grid.Column="6">
+        <TextBlock Name="tbUrl" >
+          <Hyperlink
+              NavigateUri="http://ReloadIt.Codeplex.com"
+              RequestNavigate="Hyperlink_RequestNavigate">
+            ReloadIt.Codeplex.com
+          </Hyperlink>
+        </TextBlock>
+      </StatusBarItem>
+    </StatusBar>
+
+  </Grid>
+</Window>
+
+
+
+
+
+

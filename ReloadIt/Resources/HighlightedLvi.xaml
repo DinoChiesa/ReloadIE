@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns      = "http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x    = "http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv = "clr-namespace:ReloadIt.Converter">
+
+  <Style x:Key      = "HighlightIfMonitoring"
+         TargetType = "ListViewItem">
+    <!-- When monitoring paths for a particular URL, highlight the URL.  -->
+    <Style.Triggers>
+      <DataTrigger
+          Binding="{Binding Path=IsMonitoring}"
+          Value="True"
+          >
+        <!-- a light pink -->
+        <Setter Property="Background" Value="#FFFCCFCD" />
+      </DataTrigger>
+    </Style.Triggers>
+  </Style>
+
+</ResourceDictionary>
+
+
+
