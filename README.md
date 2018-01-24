@@ -20,7 +20,7 @@ I published this tool in hopes that other people would like to use it too. If yo
 In the image above, you see the ReloadIt tool. On the left hand side, I've selected a URL that is already displayed in an IE tab. On the right hand side, I've specified a directory to watch for changes.
 
 ## Example Usage: An Editing Session.
-![ReloadIt-Usage.gif](./docs/ReloadIt-Usage.gif)
+![ReloadIt-Usage.gif](./docs/ReloadIt-usage.gif)
 
 What you're seeing above: an IE Window is open in the background, displaying a bar chart created using the flot Javascript library. This is the same URL that was selected in the previous screenshot. A text editor is open on the right hand side, editing a Javascript module that defines the data being displayed in the chart. I modify the file, and save the .js module. At that point ReloadIt (not pictured) detects the change, and tells IE to reload the changed page. This works with any editor, any type of source file, any server-side technology. Once you configure ReloadIt, you don't need to go back into the tool. Set it and forget it. Minimize it, and perform your edits as normal. It quietly reloads pages as necessary.
 
